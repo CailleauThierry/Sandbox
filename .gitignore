@@ -1,2 +1,5 @@
 *.psproj
 *.psprojs
+*.TempPoint.ps1
+*.tst
+*.xlsx
