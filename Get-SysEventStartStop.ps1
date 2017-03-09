@@ -12,8 +12,8 @@
 #>
 
 $importedtable = Get-EventLog -LogName System -After 03/02/2017 -Source EventLog -ComputerName $env:COMPUTERNAME -AsBaseObject |
- Where-Object -Property EventID -match '6005|6006' | 
- Select-Object TimeGenerated,Message # | Export-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\eventlog.csv -NoClobber -NoTypeInformation
+Where-Object -Property EventID -match '6005|6006' | 
+Select-Object TimeGenerated,Message # | Export-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\eventlog.csv -NoClobber -NoTypeInformation
 
 #$importedtable = Import-Csv $HOME\Documents\WindowsPowerShell\TimedTask_Logs\eventlog.csv
 
@@ -25,14 +25,22 @@ $importedtable | ForEach-Object {
   $Ticket = 'N/A'
   $_ | 
   Add-Member -MemberType NoteProperty -Name Duration -Value $Duration -PassThru | 
-  	Add-Member -MemberType NoteProperty -Name Category -Value $Category -PassThru |
-	Add-Member -MemberType NoteProperty -Name Ticket -Value $Ticket -PassThru |
-	Select-Object -Property	@{
-		expression = {
-			$_.TimeGenerated
-		}; label = 'DateTime'
-	},Duration,Category,Ticket,@{expression = {$_.Message}; label = 'Activity'} |
-	Export-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin.csv -NoClobber -NoTypeInformation -Append
+  Add-Member -MemberType NoteProperty -Name Category -Value $Category -PassThru |
+  Add-Member -MemberType NoteProperty -Name Ticket -Value $Ticket -PassThru |
+  Select-Object -Property	@{
+    expression = {
+      $_.TimeGenerated
+    }; label = 'DateTime'
+  },Duration,Category,Ticket,@{expression = {$_.Message}; label = 'Activity'} |
+  Export-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin.csv -NoClobber -NoTypeInformation -Append
 }
 #Cleaning up generated (ned to create new .csv as the imported one is still open i.e. can only get appended))
-Import-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin.csv | Sort-Object DateTime -Unique | Export-Csv -NoClobber -NoTypeInformation -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin_filtered.csv -Force
+
+$outfile = Get-Item "$HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin_filtered.csv"
+
+if (Test-Path $outfile) { # Test if $LogFolder path exist. If not it creates that path
+  $Silent = Remove-Item $outfile 
+}
+
+
+Import-Csv -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin.csv | Sort-Object DateTime -Unique -Descending | Export-Csv -NoClobber -NoTypeInformation -Path $HOME\Documents\WindowsPowerShell\TimedTask_Logs\FormatedLogin_filtered.csv -Force
