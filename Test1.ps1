@@ -12,3 +12,5 @@
 #>
 $a = Get-Service
 $a | Out-Host
+#this is a comment
+
